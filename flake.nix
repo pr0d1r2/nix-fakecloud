@@ -24,7 +24,7 @@
   };
 
   outputs =
-    { nixpkgs, ... }:
+    { self, nixpkgs, ... }:
     let
       # Declared: 4. CI builds and caches 3 of them; x86_64-darwin is tier-2 --
       # it must evaluate everywhere but is built locally, not by CI (SPEC V16).
@@ -61,6 +61,11 @@
       checks = forAllSystems (pkgs: {
         fakecloud = pkgs.callPackage ./pkgs/fakecloud/package.nix { };
       });
+
+      # The module defaults its package to `self.packages.<sys>.fakecloud`, so
+      # a consumer that imports it gets the cached build without also having to
+      # wire the overlay.
+      nixosModules.default = import ./nixos/module.nix { inherit self; };
 
       devShells = forAllSystems (pkgs: {
         default = pkgs.mkShell {
