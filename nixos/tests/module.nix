@@ -16,6 +16,19 @@
         environment.systemPackages = [ ];
       };
 
+    # Second server, in the other storage mode. `storageMode` exists because
+    # fakecloud rejects `--data-path` without it, so the option is only proven
+    # by a unit that actually comes up with it set (SPEC V28, B3).
+    persistent =
+      { ... }:
+      {
+        imports = [ self.nixosModules.default ];
+        services.fakecloud = {
+          enable = true;
+          storageMode = "persistent";
+        };
+      };
+
     # Deliberately vanilla: its only job is to try to reach the server.
     client =
       { pkgs, ... }:
@@ -48,6 +61,18 @@
     # V20). curl exits non-zero on a refused connection.
     client.wait_for_unit("multi-user.target")
     client.fail("curl -s -o /dev/null -m 5 http://server:4566/")
+
+
+    # The persistent mode really starts, and really writes where it was told.
+    persistent.wait_for_unit("fakecloud.service")
+    persistent.wait_for_open_port(4566, addr = "127.0.0.1")
+    persistent.succeed("curl -s -o /dev/null -m 5 http://127.0.0.1:4566/")
+    persistent.succeed("systemctl show -p ExecStart --value fakecloud.service | grep -q -- --storage-mode=persistent")
+    persistent.succeed("systemctl show -p ExecStart --value fakecloud.service | grep -q -- --data-path=/var/lib/fakecloud")
+
+    # And the default mode does NOT pass a data path, which is what made the
+    # service crash-loop before (SPEC B3).
+    server.fail("systemctl show -p ExecStart --value fakecloud.service | grep -q -- --data-path")
 
     # Nothing here asserts Lambda, RDS, ElastiCache, MQ, MSK, ECS or EC2 work:
     # those need a container runtime the module does not pull in, and without

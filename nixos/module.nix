@@ -60,16 +60,37 @@ in
       '';
     };
 
+    storageMode = lib.mkOption {
+      type = lib.types.enum [
+        "memory"
+        "persistent"
+      ];
+      default = "memory";
+      description = ''
+        Where fakecloud keeps state. `memory` is upstream's default and
+        discards everything on restart; `persistent` mirrors supported services
+        to {option}`services.fakecloud.dataDir`.
+
+        This is a typed option rather than something you pass through
+        {option}`services.fakecloud.extraArgs` because the two flags are not
+        independent: fakecloud refuses to start if `--data-path` is given
+        without `--storage-mode=persistent`, so the module has to know which
+        mode you want in order to build a command line it will accept
+        (SPEC B3).
+      '';
+    };
+
     dataDir = lib.mkOption {
       type = lib.types.str;
       default = "/var/lib/fakecloud";
       description = ''
-        Directory passed to fakecloud as `--data-path`, and created as the
-        service's `StateDirectory` when it is left at the default.
+        Directory fakecloud persists state to, and created as the service's
+        `StateDirectory` when it is left at the default.
 
-        fakecloud only writes here in persistent storage mode; its default mode
-        keeps all state in RAM and discards it on restart. To persist, add
-        `--storage-mode=persistent` to {option}`services.fakecloud.extraArgs`.
+        Only used when {option}`services.fakecloud.storageMode` is
+        `persistent`; in the default `memory` mode it is not passed to
+        fakecloud at all, because fakecloud refuses to start with a data path
+        it has no mode for.
       '';
     };
 
@@ -92,12 +113,14 @@ in
       type = lib.types.listOf lib.types.str;
       default = [ ];
       example = [
-        "--storage-mode=persistent"
         "--region=eu-central-1"
+        "--log-level=debug"
       ];
       description = ''
         Extra command line arguments, appended after the ones this module sets.
-        See `fakecloud --help`.
+        See `fakecloud --help`. Storage mode belongs in
+        {option}`services.fakecloud.storageMode`, not here -- it has to agree
+        with `--data-path`.
       '';
     };
   };
@@ -124,8 +147,13 @@ in
           [
             (lib.getExe cfg.package)
             "--addr=${cfg.bindAddress}:${toString cfg.port}"
-            "--data-path=${cfg.dataDir}"
+            "--storage-mode=${cfg.storageMode}"
           ]
+          # Only in persistent mode. fakecloud rejects `--data-path` outright
+          # when storage is in-memory -- it does not ignore it -- and the
+          # service crash-loops to start-limit-hit (SPEC B3, caught by the VM
+          # test's first real run).
+          ++ lib.optional (cfg.storageMode == "persistent") "--data-path=${cfg.dataDir}"
           ++ cfg.extraArgs
         );
 

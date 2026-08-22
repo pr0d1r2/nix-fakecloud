@@ -124,8 +124,13 @@ failing. Install a runtime yourself if you need them, or point
 State is kept in RAM unless you ask for persistence:
 
 ```nix
-services.fakecloud.extraArgs = [ "--storage-mode=persistent" ];
+services.fakecloud.storageMode = "persistent";   # written to dataDir
 ```
+
+That is a typed option rather than something you pass through `extraArgs`,
+because fakecloud refuses to start when a data path is given without a
+persistent storage mode — the module has to know which mode you want in order
+to build a command line it accepts.
 
 ## Licence
 
