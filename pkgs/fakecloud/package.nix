@@ -27,6 +27,12 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   cargoHash = "sha256-66qf8DjxwkhU3pZbI3FWQwwx7ffatsJY6m9eO3Qty/4=";
 
+  # Measured on aarch64-darwin, 2026-08-22 (SPEC V14): the whole workspace
+  # compiles and links with no `buildInputs` and no `nativeBuildInputs` at all.
+  # `libz-sys`, `zstd-sys`, `bzip2-sys`, `lzma-sys` and `ring` are in the lock
+  # but build their own vendored C -- nothing here needs a system library, so
+  # nothing is listed here.
+
   meta = {
     description = "Local AWS cloud emulator, an open-source LocalStack alternative";
     homepage = "https://fakecloud.dev";
