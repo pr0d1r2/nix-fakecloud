@@ -125,6 +125,9 @@ jobs:
             experimental-features = nix-command flakes
             accept-flake-config = true
 
+      - name: Assert nixpkgs matches nixpkgs-lock (SPEC V12)
+        run: ./.github/scripts/assert-pin.sh
+
       - name: nix flake check --all-systems --no-build
         run: nix flake check --all-systems --no-build
 
