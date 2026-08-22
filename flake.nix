@@ -55,6 +55,13 @@
         fakecloud = prev.callPackage ./pkgs/fakecloud/package.nix { };
       };
 
+      # The package already runs the upstream test suite (`doCheck`) and
+      # asserts its own version on install, so the check IS the build -- there
+      # is nothing to duplicate here beyond making `nix flake check` build it.
+      checks = forAllSystems (pkgs: {
+        fakecloud = pkgs.callPackage ./pkgs/fakecloud/package.nix { };
+      });
+
       devShells = forAllSystems (pkgs: {
         default = pkgs.mkShell {
           packages = [
