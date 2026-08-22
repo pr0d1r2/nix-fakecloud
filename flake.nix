@@ -40,15 +40,13 @@
         f: nixpkgs.lib.genAttrs supportedSystems (system: f nixpkgs.legacyPackages.${system});
     in
     {
-      # NO `packages`, `overlays`, `checks` or `nixosModules` yet, deliberately.
-      #
-      # Those need `pkgs/fakecloud/package.nix`, which needs a real `srcHash`
-      # and `cargoHash` (SPEC V3, tasks T5-T7) -- and a package output whose
-      # source does not exist is an output that breaks `direnv allow` for
-      # everyone, including whoever is trying to add it. The shell comes first
-      # so the tools that resolve those hashes are themselves in the shell.
-      #
-      # Wire them in at T10, alongside the module at T13.
+      # `packages`, `overlays` and `checks` are wired here; `nixosModules`
+      # follows at T13.
+      packages = forAllSystems (pkgs: rec {
+        fakecloud = pkgs.callPackage ./pkgs/fakecloud/package.nix { };
+        default = fakecloud;
+      });
+
       devShells = forAllSystems (pkgs: {
         default = pkgs.mkShell {
           packages = [
