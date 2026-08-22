@@ -42,6 +42,26 @@ jobs:
             experimental-features = nix-command flakes
             accept-flake-config = true
 
+      # Pushing is a main-branch action. Pull requests -- including from forks,
+      # which have no secrets at all -- build and prove they build, but do not
+      # write to the cache (SPEC V5).
+      #
+      # The token must be a per-cache token with WRITE on `pr0d1r2`, not a
+      # personal token: with the wrong scope cachix logs a 403 and the job
+      # still goes green, which is exactly how ../nix-hk shipped an empty cache
+      # for a while. T17's separate job is what actually catches that.
+      - uses: cachix/cachix-action@v17
+        with:
+          name: pr0d1r2
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' }}
+          # Upload what this repo produces, not the nixpkgs closure it merely
+          # used -- cache.nixos.org already serves that, and mirroring it burns
+          # our storage to no one's benefit (SPEC V10). The vendor tarball is
+          # ours but is a build-time input consumers never fetch, so it is
+          # filtered too.
+          pushFilter: "(-source$|-vendor$|-vendor-staging$|\\.tar\\.gz$)"
+
       - name: Build fakecloud
         run: nix build .#fakecloud --print-build-logs
 
