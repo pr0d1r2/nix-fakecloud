@@ -142,12 +142,12 @@ V26: upstream test skipped ⟺ inapplicable by construction (needs workspace lay
 
 id|status|task|cites
 T1|x|verified: pin `5880666f` has ⊥ `fakecloud` (only `rmfakecloud`). repo needed|G
-T2|.|pick source: crates.io tarball vs `fetchFromGitHub` @ tag. confirm real tag name|V3,V8
+T2|x|pick source: crates.io tarball vs `fetchFromGitHub` @ tag. confirm real tag name|V3,V8
 T3|.|measure minimal build inputs. cargo+rustc alone? record what fails without what|V14
 T4|.|confirm `--version` output format & exact string|V1,V7
 T5|~|`flake.nix`, `.envrc`, `.gitignore`, `flake.lock` done. left: `pkgs/fakecloud/package.nix`, `README.md`, `LICENSE`|V2,V18
-T6|.|resolve real `srcHash`|V3
-T7|.|resolve real `cargoHash`|V3
+T6|x|resolve real `srcHash`|V3
+T7|x|resolve real `cargoHash`|V3
 T8|.|`versionCheckHook` + `versionCheckProgramArg`|V1,V7
 T9|.|test suite: run upstream tests, list + justify ∀ skip, assert skips exist|V9,V26
 T10|~|`devShells` done & verified ∀ 4 sys. left: `packages`, `overlays.default`, `checks` — blocked on T6/T7 hashes|I,V2,V8
