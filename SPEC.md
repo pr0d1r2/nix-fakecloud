@@ -156,7 +156,7 @@ T1|x|verified: pin `5880666f` has ⊥ `fakecloud` (only `rmfakecloud`). repo nee
 T2|x|pick source: crates.io tarball vs `fetchFromGitHub` @ tag. confirm real tag name|V3,V8
 T3|x|measure minimal build inputs. cargo+rustc alone? record what fails without what|V14
 T4|x|confirm `--version` output format & exact string|V1,V7
-T5|~|`flake.nix`, `.envrc`, `.gitignore`, `flake.lock` done. left: `pkgs/fakecloud/package.nix`, `README.md`, `LICENSE`|V2,V18
+T5|x|`flake.nix`, `.envrc`, `.gitignore`, `flake.lock` done. left: `pkgs/fakecloud/package.nix`, `README.md`, `LICENSE`|V2,V18
 T6|x|resolve real `srcHash`|V3
 T7|x|resolve real `cargoHash`|V3
 T8|x|`versionCheckHook` + `versionCheckProgramArg`|V1,V7
@@ -173,7 +173,7 @@ T18|x|`nix flake check --all-systems` in CI + eval-only job for x86_64-darwin|V4
 T19|x|CI assert nixpkgs rev ≡ nixpkgs-lock rev|V12
 T20|x|CI assert pinned rustc ≡ 1.95.x|V13
 T21|x|`nixConfig` substituter + pubkey|I
-T22|.|README: pin graph, consumer wiring, tier table, `trusted-users` trap, AGPL boundary|V6,V16,V18
+T22|x|README: pin graph, consumer wiring, tier table, `trusted-users` trap, AGPL boundary|V6,V16,V18
 T23|.|`upstream.yml` cron — watch crates.io, bump, resolve hashes, open PR, re-check licence|V24
 T24|.|`update-pins.yml` cron — follow nixpkgs-lock, build before PR|V12
 T25|.|opensource readiness sweep: secrets, paths, LICENSE, CONTRIBUTING, CoC|V19,V18
