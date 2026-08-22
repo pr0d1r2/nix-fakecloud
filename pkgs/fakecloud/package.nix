@@ -14,6 +14,7 @@
   lib,
   rustPlatform,
   fetchCrate,
+  versionCheckHook,
 }:
 
 rustPlatform.buildRustPackage (finalAttrs: {
@@ -55,6 +56,11 @@ rustPlatform.buildRustPackage (finalAttrs: {
       exit 1
     fi
   '';
+
+  # Assert the binary we installed is the version we think we built (SPEC V7).
+  doInstallCheck = true;
+  nativeInstallCheckInputs = [ versionCheckHook ];
+  versionCheckProgramArg = "--version";
 
   meta = {
     description = "Local AWS cloud emulator, an open-source LocalStack alternative";
