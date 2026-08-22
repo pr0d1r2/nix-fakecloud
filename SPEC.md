@@ -136,6 +136,7 @@ V22: sub-crates (`fakecloud-*`) ⊥ exported by this flake. consumers reach fake
 V23: build wall-time & closure size recorded per release. regression ≥ 2x → flagged, ⊥ absorbed
 V24: upstream version bump opens PR, ⊥ auto-merge. AGPL upstream ∴ licence field re-checked ∀ bump
 V25: ∀ claim in §C from upstream marketing (service count, startup ms, binary size) tagged as unmeasured until this repo measures it
+V26: upstream test skipped ⟺ inapplicable by construction (needs workspace layout ∉ published tarball). reason inline @ `checkFlags` & `preCheck` greps test name ∃ in src ∴ upstream rename/removal fails loud, ⊥ silently skips nothing. ⊥ skip for flake, slow, or inconvenience
 
 ## §T tasks
 
@@ -148,7 +149,7 @@ T5|~|`flake.nix`, `.envrc`, `.gitignore`, `flake.lock` done. left: `pkgs/fakeclo
 T6|.|resolve real `srcHash`|V3
 T7|.|resolve real `cargoHash`|V3
 T8|.|`versionCheckHook` + `versionCheckProgramArg`|V1,V7
-T9|.|test suite: run upstream tests, list + justify ∀ skip, assert skips exist|V9
+T9|.|test suite: run upstream tests, list + justify ∀ skip, assert skips exist|V9,V26
 T10|~|`devShells` done & verified ∀ 4 sys. left: `packages`, `overlays.default`, `checks` — blocked on T6/T7 hashes|I,V2,V8
 T11|x|single input `nixpkgs-lock` + `nixpkgs.follows`, `flake.lock` written & staged|V11
 T12|.|measure & record build time, closure size, binary size, startup, idle RSS|V23,V25
@@ -170,3 +171,4 @@ T26|.|wire `orgmulacra` to consume this flake|I
 ## §B bugs
 
 id|date|cause|fix
+B1|2026-08-22|upstream ships repo-layout lint `no_include_str_escapes_its_crate` INSIDE crates.io tarball. asserts `CARGO_MANIFEST_DIR`/.. ends `crates` & scans sibling crate src ∴ ⊥ passable from tarball (layout ∉ tarball). 103 unit tests ok, this 1 failed → whole build failed. src choice = test-surface choice, ⊥ only a fetch detail|V26
