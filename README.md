@@ -34,6 +34,7 @@ Outputs:
 | `packages.<system>.default` | same derivation |
 | `overlays.default` | adds `pkgs.fakecloud` |
 | `checks.<system>.fakecloud` | build with the upstream test suite enabled |
+| `checks.<system>.module` | NixOS VM test for the module (Linux only) |
 | `devShells.<system>.default` | the toolchain this repo is maintained with |
 | `nixosModules.default` | `services.fakecloud` |
 
