@@ -181,7 +181,7 @@ T21|x|`nixConfig` substituter + pubkey|I
 T22|x|README: pin graph, consumer wiring, tier table, `trusted-users` trap, AGPL boundary|V6,V16,V18
 T23|x|`upstream.yml` cron — watch crates.io, bump, resolve hashes, open PR, re-check licence|V24
 T24|x|`update-pins.yml` cron — follow nixpkgs-lock, build before PR|V12
-T25|~|opensource readiness sweep: secrets, paths, LICENSE, CONTRIBUTING, CoC|V19,V18
+T25|x|opensource readiness sweep: secrets, paths, LICENSE, CONTRIBUTING, CoC|V19,V18
 
 ## §B bugs
 
