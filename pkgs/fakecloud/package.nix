@@ -33,6 +33,29 @@ rustPlatform.buildRustPackage (finalAttrs: {
   # but build their own vendored C -- nothing here needs a system library, so
   # nothing is listed here.
 
+  doCheck = true;
+
+  # 103 unit tests pass. The one skip is `no_include_str_escapes_its_crate`
+  # (SPEC B1, V26): it is not a test of fakecloud's behaviour but a lint over
+  # upstream's REPO layout -- it asserts `CARGO_MANIFEST_DIR/..` is a directory
+  # called `crates` and then walks its sibling crates' sources. Upstream ships
+  # it inside the published tarball, where that layout does not exist, so it
+  # cannot pass in any build from crates.io regardless of what the code does.
+  # It is inapplicable by construction, which is the only reason a skip is
+  # allowed.
+  checkFlags = [ "--skip=no_include_str_escapes_its_crate" ];
+
+  preCheck = ''
+    # `--skip=<name>` silently accepts a name that no longer exists, so a
+    # renamed or deleted test upstream would turn this into a skip of nothing
+    # while still looking justified. Assert it is still there (SPEC V26).
+    if ! grep -q 'fn no_include_str_escapes_its_crate' tests/no_escaping_include_str.rs; then
+      echo "checkFlags skips no_include_str_escapes_its_crate, but that test is gone from the source." >&2
+      echo "Re-check whether the skip is still needed instead of skipping nothing." >&2
+      exit 1
+    fi
+  '';
+
   meta = {
     description = "Local AWS cloud emulator, an open-source LocalStack alternative";
     homepage = "https://fakecloud.dev";

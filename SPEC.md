@@ -149,7 +149,7 @@ T5|~|`flake.nix`, `.envrc`, `.gitignore`, `flake.lock` done. left: `pkgs/fakeclo
 T6|x|resolve real `srcHash`|V3
 T7|x|resolve real `cargoHash`|V3
 T8|.|`versionCheckHook` + `versionCheckProgramArg`|V1,V7
-T9|.|test suite: run upstream tests, list + justify ∀ skip, assert skips exist|V9,V26
+T9|x|test suite: run upstream tests, list + justify ∀ skip, assert skips exist|V9,V26
 T10|~|`devShells` done & verified ∀ 4 sys. left: `packages`, `overlays.default`, `checks` — blocked on T6/T7 hashes|I,V2,V8
 T11|x|single input `nixpkgs-lock` + `nixpkgs.follows`, `flake.lock` written & staged|V11
 T12|.|measure & record build time, closure size, binary size, startup, idle RSS|V23,V25
