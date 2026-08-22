@@ -1,8 +1,8 @@
 # NixOS module for fakecloud.
 #
-# Why a NixOS module and not a launchd one: `orgmulacra` runs fakecloud on a
-# Linux substrate, and on macOS that substrate is a lima Linux guest -- so the
-# Linux module is the Mac path too. There is deliberately no darwin service.
+# Why a NixOS module and no launchd equivalent: fakecloud is run on a Linux
+# substrate, and on macOS that substrate is a Linux guest in a VM -- so the
+# NixOS module is the Mac path too, one service definition instead of two.
 #
 # Takes `self` so the default package is this flake's own build, which is the
 # build the binary cache has.
