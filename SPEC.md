@@ -57,6 +57,8 @@ Sibling of `../nix-hk`. Same shape, same lessons — see §C "inherited lessons"
   - binary **181,020,528 B** installed (155,659,440 B after `strip -x`; `-S` strip leaves ~25 MB local syms) — **~9x** claimed ~19 MB. ⊥ debug sections present. gap ⊥ explained yet.
   - closure **216.3 MiB**. §V.23 baseline.
 - **container runtime absent → degraded, ⊥ failed start.** startup WARN lists: Lambda (Invoke errors for code fns), RDS (CreateDBInstance/snapshot/replica error), ElastiCache (metadata-only), MQ & MSK (control-plane only), ECS (`RunTask` → `TaskFailedToStart`), EC2 (metadata-only instances). env `FAKECLOUD_CONTAINER_CLI` points at CLI. ∴ NixOS module & §T.14 VM test ! ⊥ assume container-backed ops work.
+- **x86_64-linux measured (2026-08-22, `nix-builder.local`, Ryzen 16 cores, nix 2.31.5).** build 776 s wall (vs 27m34s @ 10 cores darwin). binary **212,016,640 B** (darwin 181,020,528 B). closure **257.1 MiB** (darwin 216.3 MiB). `ldd` → `openssl-3.6.3`, `glibc-2.42`, `gcc-15.2.0-lib`. `--version` → `fakecloud 0.44.10`.
+- **§T.14 VM test ran green** (same host, `/dev/kvm` present). 3 nodes: `server` (defaults), `persistent` (`storageMode = "persistent"`), `client` (vanilla). asserted: unit active, loopback answers, `User=fakecloud`, `/var/lib/fakecloud` owned by it, `ss` shows `127.0.0.1:4566` & ⊥ `0.0.0.0:4566`, client ⊥ reach `server:4566`, persistent node passes both flags, default node passes ⊥ `--data-path`.
 
 ### pin graph
 
@@ -100,7 +102,8 @@ nixpkgs-lock ──> nix-fakecloud ──> orgmulacra
 - flake: `overlays.default` → adds `pkgs.fakecloud`
 - flake: `checks.<sys>.fakecloud` → build + test suite
 - flake: `devShells.<sys>.default` → fakecloud + `nixfmt` + `statix`
-- flake: `nixosModules.default` → `services.fakecloud.{enable,package,bindAddress,port,dataDir,user,group,extraArgs}`
+- flake: `nixosModules.default` → `services.fakecloud.{enable,package,bindAddress,port,storageMode,dataDir,user,group,extraArgs}`
+- `storageMode` = `memory` (default, ≡ upstream) | `persistent`. `--data-path` passed ⟺ `persistent` — fakecloud REJECTS `--data-path` w/o it (§B.3), ⊥ ignores it
 - consumer (`orgmulacra`):
   ```nix
   inputs = {
@@ -148,6 +151,8 @@ V23: build wall-time & closure size recorded per release. regression ≥ 2x → 
 V24: upstream version bump opens PR, ⊥ auto-merge. AGPL upstream ∴ licence field re-checked ∀ bump
 V25: ∀ claim in §C from upstream marketing (service count, startup ms, binary size) tagged as unmeasured until this repo measures it
 V26: upstream test skipped ⟺ inapplicable by construction (needs workspace layout ∉ published tarball). reason inline @ `checkFlags` & `preCheck` greps test name ∃ in src ∴ upstream rename/removal fails loud, ⊥ silently skips nothing. ⊥ skip for flake, slow, or inconvenience
+V27: buildInput need measured ∀ tier-1 platform, ⊥ on whichever host maintainer sits at. dep set platform-conditional (darwin native-tls → Security.framework, linux → `openssl-sys`) ∴ 1 green platform ⊥ evidence for rest. ∀ platform-guarded input carries the platform it was measured on
+V28: module option unproven until VM test shows unit reach `active`. `nix eval` of `ExecStart` proves string shape, ⊥ that binary accepts it. ∴ ∀ new option → VM test asserts service up, ⊥ eval alone
 
 ## §T tasks
 
@@ -165,7 +170,7 @@ T10|x|`devShells` done & verified ∀ 4 sys. left: `packages`, `overlays.default
 T11|x|single input `nixpkgs-lock` + `nixpkgs.follows`, `flake.lock` written & staged|V11
 T12|x|measure & record build time, closure size, binary size, startup, idle RSS|V23,V25
 T13|x|`nixosModules.default` — `services.fakecloud`, 127.0.0.1 default, own user|V20,V21
-T14|~|NixOS VM test: module starts, `:4566` answers, ⊥ reachable off-host by default|V20,V21
+T14|x|NixOS VM test: module starts, `:4566` answers, ⊥ reachable off-host by default|V20,V21
 T15|x|`.github/workflows/build.yml` 3-runner native matrix|V2,V5
 T16|x|cachix: per-cache WRITE token, `main` only, `skipPush` on PR, `pushFilter` own paths|V5,V10
 T17|x|`verify-cache` job (`needs: build`) asserting narinfo 200 + signature|V15
@@ -183,3 +188,5 @@ T26|.|wire `orgmulacra` to consume this flake|I
 
 id|date|cause|fix
 B1|2026-08-22|upstream ships repo-layout lint `no_include_str_escapes_its_crate` INSIDE crates.io tarball. asserts `CARGO_MANIFEST_DIR`/.. ends `crates` & scans sibling crate src ∴ ⊥ passable from tarball (layout ∉ tarball). 103 unit tests ok, this 1 failed → whole build failed. src choice = test-surface choice, ⊥ only a fetch detail|V26
+B2|2026-08-22|`buildInputs = []` claimed "measured" off 1 platform (aarch64-darwin green). x86_64-linux died @ 191s: `openssl-sys` ⊥ finds `pkg-config` & OpenSSL. darwin ⊥ compiles `openssl-sys` at all (native-tls → Security.framework) ∴ darwin green said nothing about linux. ∴ `pkg-config` ∈ nativeBuildInputs & `openssl` ∈ buildInputs, both `isLinux`-guarded|V27
+B3|2026-08-22|module passed `--data-path` always. fakecloud: `invalid persistence configuration: --data-path is only valid with --storage-mode=persistent` → crash-loop → `start-limit-hit`. module NEVER worked. real cause: T13 accepted on `nix eval` of `ExecStart` — eval proves string, ⊥ that binary accepts it. caught by §T.14 VM test 1st real run|V28

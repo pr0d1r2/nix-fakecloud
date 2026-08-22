@@ -12,9 +12,12 @@
 # Nothing here vendors or patches upstream (SPEC V17): fetch, build, install.
 {
   lib,
+  stdenv,
   rustPlatform,
   fetchCrate,
   versionCheckHook,
+  pkg-config,
+  openssl,
 }:
 
 rustPlatform.buildRustPackage (finalAttrs: {
@@ -28,11 +31,18 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   cargoHash = "sha256-66qf8DjxwkhU3pZbI3FWQwwx7ffatsJY6m9eO3Qty/4=";
 
-  # Measured on aarch64-darwin, 2026-08-22 (SPEC V14): the whole workspace
-  # compiles and links with no `buildInputs` and no `nativeBuildInputs` at all.
-  # `libz-sys`, `zstd-sys`, `bzip2-sys`, `lzma-sys` and `ring` are in the lock
-  # but build their own vendored C -- nothing here needs a system library, so
-  # nothing is listed here.
+  # Platform-conditional, and measured on both (SPEC V27, B2).
+  #
+  # aarch64-darwin builds this with nothing at all: `native-tls` there goes
+  # through Security.framework, so `openssl-sys` is never compiled. On Linux it
+  # is, and the build dies at 191 seconds looking for pkg-config and OpenSSL. A
+  # green build on one platform said nothing whatsoever about the other.
+  #
+  # Everything else in the lock that looks like it needs a system library --
+  # `libz-sys`, `zstd-sys`, `bzip2-sys`, `lzma-sys`, `ring` -- builds its own
+  # vendored C on both platforms, so none of them are listed here.
+  nativeBuildInputs = lib.optionals stdenv.hostPlatform.isLinux [ pkg-config ];
+  buildInputs = lib.optionals stdenv.hostPlatform.isLinux [ openssl ];
 
   doCheck = true;
 
