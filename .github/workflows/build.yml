@@ -1,0 +1,49 @@
+# Build fakecloud natively on every tier-1 system.
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build (${{ matrix.system }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      # One system failing should not hide the state of the other two.
+      fail-fast: false
+      matrix:
+        include:
+          # Tier-1, each on its own architecture: no qemu, no cross-compiling.
+          # A binary built under emulation is not the binary consumers fetch,
+          # and aarch64-linux has a native runner, so there is no reason to
+          # fake it (SPEC V2).
+          - runner: ubuntu-24.04
+            system: x86_64-linux
+          - runner: ubuntu-24.04-arm
+            system: aarch64-linux
+          - runner: macos-14
+            system: aarch64-darwin
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - name: Build fakecloud
+        run: nix build .#fakecloud --print-build-logs
+
+      - name: Check the binary reports its own version (SPEC V1)
+        run: ./result/bin/fakecloud --version | grep -q '0\.44\.10'
