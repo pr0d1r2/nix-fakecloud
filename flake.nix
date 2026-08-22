@@ -58,9 +58,20 @@
       # The package already runs the upstream test suite (`doCheck`) and
       # asserts its own version on install, so the check IS the build -- there
       # is nothing to duplicate here beyond making `nix flake check` build it.
-      checks = forAllSystems (pkgs: {
-        fakecloud = pkgs.callPackage ./pkgs/fakecloud/package.nix { };
-      });
+      #
+      # The VM test is Linux-only: NixOS VM tests need KVM and a Linux guest,
+      # so on darwin it is not merely slow, it cannot run. Listing it there
+      # would make `nix flake check` fail on the machines this repo is
+      # maintained from.
+      checks = forAllSystems (
+        pkgs:
+        {
+          fakecloud = pkgs.callPackage ./pkgs/fakecloud/package.nix { };
+        }
+        // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+          module = pkgs.testers.runNixOSTest (import ./nixos/tests/module.nix { inherit self; });
+        }
+      );
 
       # The module defaults its package to `self.packages.<sys>.fakecloud`, so
       # a consumer that imports it gets the cached build without also having to

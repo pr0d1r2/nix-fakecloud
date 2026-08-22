@@ -165,7 +165,7 @@ T10|x|`devShells` done & verified ∀ 4 sys. left: `packages`, `overlays.default
 T11|x|single input `nixpkgs-lock` + `nixpkgs.follows`, `flake.lock` written & staged|V11
 T12|x|measure & record build time, closure size, binary size, startup, idle RSS|V23,V25
 T13|x|`nixosModules.default` — `services.fakecloud`, 127.0.0.1 default, own user|V20,V21
-T14|.|NixOS VM test: module starts, `:4566` answers, ⊥ reachable off-host by default|V20,V21
+T14|~|NixOS VM test: module starts, `:4566` answers, ⊥ reachable off-host by default|V20,V21
 T15|.|`.github/workflows/build.yml` 3-runner native matrix|V2,V5
 T16|.|cachix: per-cache WRITE token, `main` only, `skipPush` on PR, `pushFilter` own paths|V5,V10
 T17|.|`verify-cache` job (`needs: build`) asserting narinfo 200 + signature|V15
