@@ -62,6 +62,9 @@ jobs:
           # filtered too.
           pushFilter: "(-source$|-vendor$|-vendor-staging$|\\.tar\\.gz$)"
 
+      - name: Assert the pinned rustc is what builds it (SPEC V13)
+        run: ./.github/scripts/assert-rustc.sh ${{ matrix.system }}
+
       - name: Build fakecloud
         run: nix build .#fakecloud --print-build-logs
 
