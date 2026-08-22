@@ -18,6 +18,16 @@ jobs:
   build:
     name: build (${{ matrix.system }})
     runs-on: ${{ matrix.runner }}
+    # A diagnostic, not hygiene. GitHub serves no logs for an in-progress job
+    # and defaults to 360 minutes, so an unbounded hang is six hours of silence
+    # followed by nothing to read -- ../itok's bound fired at 45m16s and
+    # produced the log that identified a deadlock no amount of staring at the
+    # Actions page could reach.
+    #
+    # 120 is deliberately loose: the compile is 27m34s on 10 cores and 776s on
+    # 16, and a hosted runner has 4. That makes this a hang detector, not a
+    # performance budget. Tighten it once a real run has measured itself.
+    timeout-minutes: 120
     strategy:
       # One system failing should not hide the state of the other two.
       fail-fast: false
@@ -97,6 +107,9 @@ jobs:
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
+    # Six HTTP requests. If this is not done in ten minutes something is wrong
+    # with the cache, not with the check.
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -119,6 +132,8 @@ jobs:
     # (SPEC V4). `--no-build` keeps this to evaluation; building is the
     # matrix's job.
     runs-on: ubuntu-24.04
+    # Evaluation only -- no compiling happens here.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
