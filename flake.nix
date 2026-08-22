@@ -47,6 +47,14 @@
         default = fakecloud;
       });
 
+      # Consumers that already have a nixpkgs of their own take the overlay
+      # instead of the package, and get `pkgs.fakecloud` in the usual place.
+      # It must resolve to the same derivation as `packages.<sys>.fakecloud`,
+      # or the cache hit consumers came for evaporates.
+      overlays.default = _final: prev: {
+        fakecloud = prev.callPackage ./pkgs/fakecloud/package.nix { };
+      };
+
       devShells = forAllSystems (pkgs: {
         default = pkgs.mkShell {
           packages = [
