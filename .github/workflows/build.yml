@@ -67,3 +67,32 @@ jobs:
 
       - name: Check the binary reports its own version (SPEC V1)
         run: ./result/bin/fakecloud --version | grep -q '0\.44\.10'
+
+      - name: Record the store path for the cache check
+        run: nix path-info .#fakecloud > store-path.txt
+
+      - name: Publish the store path for the verify-cache job
+        uses: actions/upload-artifact@v7
+        with:
+          name: store-path-${{ matrix.system }}
+          path: store-path.txt
+          if-no-files-found: error
+
+  verify-cache:
+    name: verify cache
+    # A separate job, not a step in the build job. cachix-action pushes from a
+    # post-run hook, so an assertion inside the build job races it and can pass
+    # before anything has been uploaded (SPEC V15, ../nix-hk B3-B5).
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: store-path-*
+          path: store-paths
+
+      - name: Assert every tier-1 path is in the cache and signed
+        run: ./.github/scripts/verify-cache.sh store-paths
