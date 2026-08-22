@@ -46,6 +46,17 @@ Sibling of `../nix-hk`. Same shape, same lessons — see §C "inherited lessons"
 - `nix flake check --all-systems` → `all checks passed`, ∀ 4 systems eval clean, devShell derivation built ∀ 4.
 - `nix develop` entered; `nixfmt` 1.4.0, `statix` 0-unstable-2026-05-14, `nurl` 0.4.0, `nix-prefetch-git` 26.05, `shellcheck` 0.11.0, `actionlint` 1.7.12, `cachix` 1.11.1, `git` 2.54.0 ∀ on PATH.
 - **x86_64-darwin has an end date.** Eval emits: `Nixpkgs 26.05 will be the last release to support x86_64-darwin`. ∴ tier-2 is not merely uncached, it is terminal — the next pin bump past 26.05 removes the platform. §V.16 stands for now; revisit at that bump, ⊥ treat as permanent.
+- **build 0.44.10 green (2026-08-22).** `buildPhase` 27m34s + `checkPhase` 1m28s, 10 cores, load ~23 (cargo `cores = 0` oversubscribes). tests: 103 unit ✓, 1 filtered (§B.1 skip).
+- **⊥ buildInputs, ⊥ nativeBuildInputs.** whole workspace compiles & links bare. `libz-sys`/`zstd-sys`/`bzip2-sys`/`lzma-sys`/`ring` ∈ lock ! build own vendored C. `otool -L` → system frameworks + `libiconv` only. ∴ §V.14 satisfied by measurement, ⊥ by copying.
+- **⊥ `[profile.release]`** in published crate ⊕ upstream workspace root. ∴ size below = plain cargo release, ⊥ a lost upstream profile.
+- `fakecloud --version` → `fakecloud 0.44.10` (§T.4 answered, exact format).
+- **§V.25 claims now measured** (aarch64-darwin):
+  - services registered **105** — upstream claim ✓ matches.
+  - startup **0.096 s** to first HTTP answer — beats claimed ~300 ms.
+  - idle RSS **25.2 MB** — ~2.5x claimed ~10 MiB.
+  - binary **181,020,528 B** installed (155,659,440 B after `strip -x`; `-S` strip leaves ~25 MB local syms) — **~9x** claimed ~19 MB. ⊥ debug sections present. gap ⊥ explained yet.
+  - closure **216.3 MiB**. §V.23 baseline.
+- **container runtime absent → degraded, ⊥ failed start.** startup WARN lists: Lambda (Invoke errors for code fns), RDS (CreateDBInstance/snapshot/replica error), ElastiCache (metadata-only), MQ & MSK (control-plane only), ECS (`RunTask` → `TaskFailedToStart`), EC2 (metadata-only instances). env `FAKECLOUD_CONTAINER_CLI` points at CLI. ∴ NixOS module & §T.14 VM test ! ⊥ assume container-backed ops work.
 
 ### pin graph
 
@@ -152,7 +163,7 @@ T8|x|`versionCheckHook` + `versionCheckProgramArg`|V1,V7
 T9|x|test suite: run upstream tests, list + justify ∀ skip, assert skips exist|V9,V26
 T10|x|`devShells` done & verified ∀ 4 sys. left: `packages`, `overlays.default`, `checks` — blocked on T6/T7 hashes|I,V2,V8
 T11|x|single input `nixpkgs-lock` + `nixpkgs.follows`, `flake.lock` written & staged|V11
-T12|.|measure & record build time, closure size, binary size, startup, idle RSS|V23,V25
+T12|x|measure & record build time, closure size, binary size, startup, idle RSS|V23,V25
 T13|.|`nixosModules.default` — `services.fakecloud`, 127.0.0.1 default, own user|V20,V21
 T14|.|NixOS VM test: module starts, `:4566` answers, ⊥ reachable off-host by default|V20,V21
 T15|.|`.github/workflows/build.yml` 3-runner native matrix|V2,V5
