@@ -1,0 +1,81 @@
+# Follow nixpkgs-lock's bumps.
+#
+# The pin assertion in build.yml goes red the moment nixpkgs-lock moves and
+# this repo has not followed. That window is not cosmetic -- while it is open,
+# consumers resolve a different nixpkgs than this cache was built against and
+# quietly compile fakecloud themselves. This cron closes it.
+name: update-pins
+
+on:
+  schedule:
+    - cron: "43 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-pins
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: follow nixpkgs-lock
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - name: Update the lock
+        id: update
+        run: |
+          before=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
+          nix flake update nixpkgs-lock
+          after=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
+          {
+            echo "before=$before"
+            echo "after=$after"
+            if [ "$before" != "$after" ]; then echo "changed=true"; fi
+          } >> "$GITHUB_OUTPUT"
+
+      # A pin bump moves the compiler and every system library under the build.
+      # Opening a PR that says "follow nixpkgs-lock" without building it would
+      # be opening a PR that might not compile, and the reviewer would find out
+      # 30 minutes later.
+      - name: Build against the new pin
+        if: steps.update.outputs.changed == 'true'
+        run: nix build .#fakecloud --print-build-logs
+
+      - name: Assert the toolchain is still what the spec expects
+        if: steps.update.outputs.changed == 'true'
+        run: ./.github/scripts/assert-rustc.sh x86_64-linux
+
+      - name: Open a PR
+        if: steps.update.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: update-pins
+          title: "chore: follow nixpkgs-lock to ${{ steps.update.outputs.after }}"
+          commit-message: "chore: follow nixpkgs-lock to ${{ steps.update.outputs.after }}"
+          body: |
+            nixpkgs-lock moved, so this repo follows.
+
+            ```
+            before: ${{ steps.update.outputs.before }}
+            after:  ${{ steps.update.outputs.after }}
+            ```
+
+            Built against the new pin before this PR was opened, and the
+            rustc/cargo assertion still passes.
+
+            If that assertion had failed, the pin has crossed a Rust release —
+            check what moved before merging, and expect a full cache rebuild
+            either way.
+          labels: pins
+          delete-branch: true
