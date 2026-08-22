@@ -4,7 +4,7 @@
 
 Deliver `fakecloud` (0.44.10) to fleet systems. Fleet pin `nixos-26.05` ships ⊥ fakecloud (crate first published 2026, after branch-off) ∴ this repo IS the fleet's fakecloud provider.
 
-Nix flake build ∀ 4 systems; push cachix `pr0d1r2`; consumed prebuilt by `orgmulacra` (& any 26.05 host), ⊥ local compile.
+Nix flake build ∀ 4 systems; push cachix `pr0d1r2`; consumed prebuilt by ∀ 26.05 host, ⊥ local compile.
 
 Built w/ rustc from same 26.05 pin (1.95.0) ∴ one toolchain, one bump point (`nixpkgs-lock`).
 
@@ -37,7 +37,7 @@ Sibling of `../nix-hk`. Same shape, same lessons — see §C "inherited lessons"
 - fakecloud = AGPL-3.0-or-later. This repo = **packaging only**: fetch, build, install. ⊥ derivative work of fakecloud.
 - ∴ this repo's own licence free to be fleet default (MIT). ! stated explicitly in LICENSE + README, ⊥ left inferred (§V.18).
 - **⊥ vendor fakecloud source into this tree. ⊥ patch it.** Both open the derivative-work question that packaging alone avoids. Upstream bug → upstream PR, ⊥ local patch (§V.17).
-- consumers reach fakecloud as a **binary over `:4566`**, ⊥ by linking `fakecloud-*` crates. That boundary lives in the consumer's spec (`orgmulacra` §V.25); this repo ! ⊥ make linking easy — ⊥ export the sub-crates.
+- consumers reach fakecloud as a **binary over `:4566`**, ⊥ by linking `fakecloud-*` crates. That boundary lives in each consumer's own spec; this repo ! ⊥ make linking easy — ⊥ export the sub-crates.
 
 ### measured (2026-08-22, aarch64-darwin, this machine)
 
@@ -63,13 +63,13 @@ Sibling of `../nix-hk`. Same shape, same lessons — see §C "inherited lessons"
 ### pin graph
 
 ```
-nixpkgs-lock ──> nix-fakecloud ──> orgmulacra
-             └──> nix-hk ────────┘
+nixpkgs-lock ──> nix-fakecloud ──> consumer
+             └──> nix-hk ──────┘
 ```
 
 - `github:pr0d1r2/nixpkgs-lock` = sole pin authority, ~80 consumers, tracks `nixos-26.05`.
 - this repo: **1 input** — `nixpkgs-lock`, `nixpkgs.follows = "nixpkgs-lock/nixpkgs"`. 2nd nixpkgs edge forks the rev & kills ∀ cache hit (§V.11).
-- consumer (`orgmulacra`) wires 3: `nixpkgs-lock`, `nix-hk`, `nix-fakecloud`, latter two `follows` the first.
+- consumer wires 3: `nixpkgs-lock`, `nix-hk`, `nix-fakecloud`, latter two `follows` the first.
 - ⊥ re-export by nixpkgs-lock (cycle + breaks its leaf rule).
 
 ### build & CI
@@ -83,7 +83,7 @@ nixpkgs-lock ──> nix-fakecloud ──> orgmulacra
 
 ### NixOS module
 
-- `orgmulacra` runs fakecloud on Linux substrate ∴ this repo ships `nixosModules.default` → `services.fakecloud`.
+- consumers run fakecloud on Linux substrate ∴ this repo ships `nixosModules.default` → `services.fakecloud`.
 - module defaults **bind `127.0.0.1`**, ⊥ `0.0.0.0`. fakecloud has ⊥ auth by design ∴ a public bind = open AWS control plane (§V.20).
 - runs as own unprivileged user, own `StateDirectory`. ⊥ root (§V.21).
 - darwin: ⊥ launchd module. Mac path = lima Linux guest, which uses the NixOS module.
@@ -104,7 +104,7 @@ nixpkgs-lock ──> nix-fakecloud ──> orgmulacra
 - flake: `devShells.<sys>.default` → fakecloud + `nixfmt` + `statix`
 - flake: `nixosModules.default` → `services.fakecloud.{enable,package,bindAddress,port,storageMode,dataDir,user,group,extraArgs}`
 - `storageMode` = `memory` (default, ≡ upstream) | `persistent`. `--data-path` passed ⟺ `persistent` — fakecloud REJECTS `--data-path` w/o it (§B.3), ⊥ ignores it
-- consumer (`orgmulacra`):
+- consumer:
   ```nix
   inputs = {
     nixpkgs-lock.url = "github:pr0d1r2/nixpkgs-lock";
@@ -182,7 +182,6 @@ T22|x|README: pin graph, consumer wiring, tier table, `trusted-users` trap, AGPL
 T23|x|`upstream.yml` cron — watch crates.io, bump, resolve hashes, open PR, re-check licence|V24
 T24|x|`update-pins.yml` cron — follow nixpkgs-lock, build before PR|V12
 T25|~|opensource readiness sweep: secrets, paths, LICENSE, CONTRIBUTING, CoC|V19,V18
-T26|.|wire `orgmulacra` to consume this flake|I
 
 ## §B bugs
 
