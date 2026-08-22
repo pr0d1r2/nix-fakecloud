@@ -169,7 +169,7 @@ T14|~|NixOS VM test: module starts, `:4566` answers, ⊥ reachable off-host by d
 T15|x|`.github/workflows/build.yml` 3-runner native matrix|V2,V5
 T16|x|cachix: per-cache WRITE token, `main` only, `skipPush` on PR, `pushFilter` own paths|V5,V10
 T17|x|`verify-cache` job (`needs: build`) asserting narinfo 200 + signature|V15
-T18|.|`nix flake check --all-systems` in CI + eval-only job for x86_64-darwin|V4,V16
+T18|x|`nix flake check --all-systems` in CI + eval-only job for x86_64-darwin|V4,V16
 T19|.|CI assert nixpkgs rev ≡ nixpkgs-lock rev|V12
 T20|.|CI assert pinned rustc ≡ 1.95.x|V13
 T21|x|`nixConfig` substituter + pubkey|I

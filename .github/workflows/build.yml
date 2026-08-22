@@ -68,6 +68,14 @@ jobs:
       - name: Check the binary reports its own version (SPEC V1)
         run: ./result/bin/fakecloud --version | grep -q '0\.44\.10'
 
+
+      # The VM test needs KVM, so it runs on the x86_64 Linux leg only. The
+      # arm64 runner's nested-virtualisation support is not something this repo
+      # has verified, and a check that fails for infrastructure reasons teaches
+      # nobody anything. If it turns out to work there, widen this.
+      - name: Run the NixOS module VM test
+        if: matrix.system == 'x86_64-linux'
+        run: nix build .#checks.x86_64-linux.module --print-build-logs
       - name: Record the store path for the cache check
         run: nix path-info .#fakecloud > store-path.txt
 
@@ -96,3 +104,29 @@ jobs:
 
       - name: Assert every tier-1 path is in the cache and signed
         run: ./.github/scripts/verify-cache.sh store-paths
+
+  eval:
+    name: eval (all systems)
+    # Cheap, and the only job that says anything about x86_64-darwin. Tier-2
+    # means evaluated but not built or cached (SPEC V16) -- without this job
+    # nothing would notice it breaking until someone tried to use it.
+    #
+    # `--all-systems` is the whole point: the bare form silently skips systems
+    # the runner cannot evaluate, so a broken foreign system stays green
+    # (SPEC V4). `--no-build` keeps this to evaluation; building is the
+    # matrix's job.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - name: nix flake check --all-systems --no-build
+        run: nix flake check --all-systems --no-build
+
+      - name: Assert x86_64-darwin still evaluates (SPEC V16)
+        run: nix eval --raw .#packages.x86_64-darwin.fakecloud.drvPath
