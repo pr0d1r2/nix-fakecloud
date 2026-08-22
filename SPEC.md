@@ -174,7 +174,7 @@ T19|x|CI assert nixpkgs rev ≡ nixpkgs-lock rev|V12
 T20|x|CI assert pinned rustc ≡ 1.95.x|V13
 T21|x|`nixConfig` substituter + pubkey|I
 T22|x|README: pin graph, consumer wiring, tier table, `trusted-users` trap, AGPL boundary|V6,V16,V18
-T23|.|`upstream.yml` cron — watch crates.io, bump, resolve hashes, open PR, re-check licence|V24
+T23|x|`upstream.yml` cron — watch crates.io, bump, resolve hashes, open PR, re-check licence|V24
 T24|.|`update-pins.yml` cron — follow nixpkgs-lock, build before PR|V12
 T25|.|opensource readiness sweep: secrets, paths, LICENSE, CONTRIBUTING, CoC|V19,V18
 T26|.|wire `orgmulacra` to consume this flake|I

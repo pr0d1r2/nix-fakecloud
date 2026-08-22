@@ -1,0 +1,61 @@
+# Watch crates.io for a new fakecloud release and open a PR for it.
+#
+# Opens, never merges (SPEC V24). fakecloud is AGPL and this repo's whole
+# posture -- MIT packaging, no vendoring, no patching -- rests on that, so a
+# version bump is a moment to look, not to rubber-stamp.
+name: upstream
+
+on:
+  schedule:
+    # Daily. Upstream released ten times in the three weeks before this was
+    # written, so weekly would mean sitting on stale versions for days.
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: upstream
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: check crates.io
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      # Runs inside the devShell so it uses the pinned nix-update rather than
+      # whatever a runner happens to have.
+      - name: Check for a new release and bump if there is one
+        id: bump
+        run: nix develop --command ./.github/scripts/check-upstream.sh
+
+      - name: Open a PR
+        if: steps.bump.outputs.bumped == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: upstream/fakecloud-${{ steps.bump.outputs.version }}
+          title: "fakecloud ${{ steps.bump.outputs.previous }} -> ${{ steps.bump.outputs.version }}"
+          commit-message: "feat: fakecloud ${{ steps.bump.outputs.version }}"
+          body: |
+            Automated bump from crates.io.
+
+            The cron checked that upstream still publishes fakecloud as
+            AGPL-3.0-or-later before touching anything (SPEC V24), rewrote the
+            version and both hashes with `nix-update`, built the result, and
+            confirmed the binary reports ${{ steps.bump.outputs.version }}.
+
+            What a human still owes this PR: read upstream's changelog for
+            behaviour changes the tests would not catch, and re-check whether
+            the skipped test in `package.nix` is still the right call.
+          labels: upstream
+          delete-branch: true

@@ -94,6 +94,10 @@
             pkgs.nurl
             pkgs.nix-prefetch-git
 
+            # For T23's cron: rewrites the version and both hashes in
+            # package.nix so the bump PR is mechanical rather than hand-typed.
+            pkgs.nix-update
+
             # For T15-T17: the CI workflows are shell and YAML, and nix-hk
             # learned the hard way that a green job is not evidence of a
             # populated cache. These let the checks be written and linted here
