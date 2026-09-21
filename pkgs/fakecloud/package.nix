@@ -22,14 +22,14 @@
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "fakecloud";
-  version = "0.44.10";
+  version = "0.45.1";
 
   src = fetchCrate {
     inherit (finalAttrs) pname version;
-    hash = "sha256-vp1XFSl8ArdTYWMh4UYXPXUJtTGgrEhC89eisddFI7I=";
+    hash = "sha256-IOCzoVIvV3ouSou8CeQ7NWZuAqi5+p6HD6vMZp5LrK8=";
   };
 
-  cargoHash = "sha256-66qf8DjxwkhU3pZbI3FWQwwx7ffatsJY6m9eO3Qty/4=";
+  cargoHash = "sha256-xLCcd98n8sphm4db05JOBb6bIRJ0sP729sfmQY+zpO0=";
 
   # Platform-conditional, and measured on both (SPEC V27, B2).
   #
