@@ -119,7 +119,7 @@ nixpkgs-lock ──> nix-fakecloud ──> consumer
 - cmd: `nix build .#fakecloud` → `result/bin/fakecloud`
 - cmd: `nix run .#fakecloud -- --version` → version string containing `0.44.10` (exact format ! confirmed T4)
 - cmd: `nix flake check --all-systems` → exit 0
-- ci: `.github/workflows/build.yml` matrix {ubuntu-24.04, ubuntu-24.04-arm, macos-14}
+- ci: `.github/workflows/build.yml` matrix {ubuntu-24.04, ubuntu-24.04-arm, macos-latest}
 - ci: `.github/workflows/upstream.yml` cron — watch crates.io for new fakecloud, open PR
 - ci: `.github/workflows/update-pins.yml` cron — follow nixpkgs-lock bumps
 
